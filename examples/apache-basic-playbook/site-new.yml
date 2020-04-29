@@ -1,0 +1,42 @@
+---
+- name: Install Apache and Chrony services playbook
+  hosts: web
+  become: yes
+  gather_facts: false
+  vars:
+    packages_to_check:
+    - httpd
+    - chrony
+    apache_test_message: This is a test message
+    apache_webserver_port: 80
+
+  tasks:
+
+  - name: Install Httpd and Chrony packages
+    yum:
+     name: "{{item}}"
+     state: present
+    loop: "{{packages_to_check}}"
+    notify:
+    - Restart Apache Services
+    - Restart Chrony Services
+
+  - name: Ensure latest index.html is present
+      template:
+        src: templates/index.html.j2
+        dest: /var/www/html/index.html
+
+
+  handlers:
+
+  - name: Restart Apache Services
+    service:
+     name: httpd
+     state: restarted
+     enabled: yes
+
+  - name: Restart Chrony Services
+    service:
+     name: chronyd
+     state: restarted
+     enabled: yes
